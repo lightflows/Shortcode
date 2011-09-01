@@ -1,0 +1,455 @@
+<?php
+
+/**
+ *
+ * shortcodes hook implementation
+ *
+ */
+
+function shortcode_basic_tags_shortcodes($op, $format = 1, $long = FALSE) {
+  switch ($op) {
+    case 'list':
+      // array indexed by the shortcode name
+      return array(
+        'highlight'  => t('Insert a span around the text with highlight css class.'), // use t()!
+        'button'  => t('Insert a link formatted like a button.'), // use t()!
+        'dropcap'  => t('Replace a given text formatted like a dropcap.'), // use t()!
+        'quote'  => t('Replace a given text formatted like a quote.'), // use t()!
+        'item'  => t('Insert div or span around the text with some css classes.'), // use t()!
+        'clear'  => t('Insert a clearer div for a proper layout.'), // use t()!
+        'link'    => t('Makes an aliased link to the given path'),
+         'one_third'    => t('Makes a 1/3rd width column'),
+         'two_third'    => t('Makes a 2/3rd width column'),
+          'one_third_last'    => t('Makes the last column 1/3rd width column'),
+         'two_third_last'    => t('Makes the last column 2/3rd width column'),
+      );
+    break;
+
+    case 'tips':
+      $output  = shortcode_basic_tags_shortcode_highlight_tip($format, $long);
+      $output .= shortcode_basic_tags_shortcode_button_tip($format, $long);
+      $output .= shortcode_basic_tags_shortcode_dropcap_tip($format, $long);
+      $output .= shortcode_basic_tags_shortcode_quote_tip($format, $long);
+      $output .= shortcode_basic_tags_shortcode_item_tip($format, $long);
+      $output .= shortcode_basic_tags_shortcode_link_tip($format, $long);
+      return $output;
+    break;
+
+    default:
+      ;
+    break;
+  }
+
+} // shortcode_shortcodes()
+
+/**
+* Implementation of hook_theme().
+*/
+function shortcode_basic_tags_theme() {
+  return array(
+      'shortcode_button' => array(
+        'arguments' => array('$link' => '#', $text => '', $class => 'button'),
+      ),
+
+      'shortcode_quote' => array(
+        'arguments' => array($text => '', $class => 'quote'),
+      ),
+
+      'shortcode_dropcap' => array(
+        'arguments' => array($text => '', $class => 'dropcap'),
+      ),
+
+      'shortcode_item' => array(
+        'arguments' => array($text => '', $id => '', $class => '', $type => 'div'),
+      ),
+
+      'shortcode_clear' => array(
+        'arguments' => array($text => '', $id => '', $class => '', $type => 'div'),
+      ),
+    );
+}
+
+// shortcode implementations
+
+/**
+ * Insert a span around the text with highlight css class
+ *
+ * Calling
+ * [highlight]text[/highlight]
+ *
+ *
+ * If the length empty or invalid, between 1-99, the length will be 8
+ *
+ */
+function shortcode_basic_tags_shortcode_highlight($attrs, $text) {
+  extract( shortcode_attrs( array(
+      'class'  => '',
+      ), $attrs ));
+
+  $class = shortcode_add_class($class, 'highlight');
+  return '<span class="' . $class . '">' . $text . '</span>';
+} // shortcode_basic_tags_shortcode_highlight()
+
+function shortcode_basic_tags_shortcode_highlight_tip($format, $long) {
+  $output = '';
+  if (shortcode_shortcode_is_enabled('highlight', $format)) {
+    $output = '<p><strong>[highlight (class="additional class")]text[/highlight]</strong>';
+    if ($long) {
+      $output .= ' insert a span.highlight around the text.</p>';
+      $output .= '<p>Sample css:</p>';
+      $output .= '<code>
+span.highlight{
+  background-color:red;
+}
+span.highlight2{
+  background-color:cyan;
+}
+</code><p>&nbsp</p>';
+    }
+    else {
+      $output .= ' insert a span.highlight around the text. Additional class names can be added by the <em>class</em> parameter.</p>';
+    }
+  }
+
+  return $output;
+} // shortcode_basic_tags_shortcode_highlight_tip()
+
+function shortcode_basic_tags_shortcode_button($attrs, $text) {
+  extract(shortcode_attrs( array(
+      'title' => 'title default',
+      'class' => 'button',
+      'url' =>  '/',
+      // ...etc
+      ), $attrs ));
+
+  $class = shortcode_add_class($class, 'button');
+
+  return theme('shortcode_button', $url, $text, $class);
+} // shortcode_basic_tags_shortcode_button()
+
+function shortcode_basic_tags_shortcode_button_tip($format, $long) {
+  $output = '';
+  if (shortcode_shortcode_is_enabled('button', $format)) {
+    $output = '<p><strong>[button (class="additional class")]text[/button]</strong>';
+    if ($long) {
+      $output .= ' insert a link formatted like a button. Use url parameter for the link.</p>';
+    }
+    else {
+      $output .= ' insert a link formatted like a button. The <em>url</em> parameter provides the link target. The <em>title</em> will be formatted as a link title (small tooltip over the link - helps for SEO). Additional class names can be added by the <em>class</em> parameter.</p>';
+    }
+  }
+
+  return $output;
+}
+
+function theme_shortcode_button($link, $text, $class) {
+  return '<a href="' . $link . '" class="' . $class . '"><span>' . $text . '</span></a>';
+}
+
+function shortcode_basic_tags_shortcode_one_third($attrs, $text) {
+  extract( shortcode_attrs( array(
+      'class'  => '',
+      ), $attrs ));
+
+  $class = shortcode_add_class($class, 'column-1-3');
+  return '<div class="' . $class . '"><div class="column-inner">' . $text . '</div></div>';
+} 
+
+function shortcode_basic_tags_shortcode_two_third($attrs, $text) {
+  extract( shortcode_attrs( array(
+      'class'  => '',
+      ), $attrs ));
+
+  $class = shortcode_add_class($class, 'column-2-3');
+  return '<div class="' . $class . '"><div class="column-inner">' . $text . '</div></div>';
+}
+
+function shortcode_basic_tags_shortcode_one_third_last($attrs, $text) {
+  extract( shortcode_attrs( array(
+      'class'  => '',
+      ), $attrs ));
+
+  $class = shortcode_add_class($class, 'column-1-3');
+  return '<div class="' . $class . ' column-last"><div class="column-inner">' . $text . '</div></div>';
+} 
+
+function shortcode_basic_tags_shortcode_two_third_last($attrs, $text) {
+  extract( shortcode_attrs( array(
+      'class'  => '',
+      ), $attrs ));
+
+  $class = shortcode_add_class($class, 'column-2-3');
+  return '<div class="' . $class . ' column-last"><div class="column-inner">' . $text . '</div></div>';
+} 
+
+
+
+
+function shortcode_basic_tags_shortcode_dropcap($attrs, $text) {
+  extract(shortcode_attrs( array(
+      'class' => 'dropcap',
+      // ...etc
+      ), $attrs ));
+
+  $class = shortcode_add_class($class, 'dropcap');
+  return theme('shortcode_dropcap', $text, $class);
+} // shortcode_basic_tags_shortcode_dropcap()
+
+/**
+ * Theme hook for dropcap
+ * @param $text
+ * @param $class
+ */
+function theme_shortcode_dropcap($text, $class) {
+  return '<span class="' . $class . '">' . $text . '</span>';
+}
+
+function shortcode_basic_tags_shortcode_dropcap_tip($format, $long) {
+  $output = '';
+  if (shortcode_shortcode_is_enabled('dropcap', $format)) {
+    $output = '<p><strong>[dropcap (class="additional class")]text[/dropcap]</strong>';
+    if ($long) {
+      $output .= ' replace a given text formatted like a dropcap.</p>';
+      $output .= '<p>Sample css:</p>';
+      $output .= '<code>
+.dropcap {
+  display:block;
+  float:left;
+  font-size:38px;
+  line-height:38px;
+  vertical-align:baseline;
+  padding-right:5px;
+}
+</code><p>&nbsp</p>';
+
+    }
+    else {
+      $output .= ' replace a given text formatted like a dropcap. Additional class names can be added by the <em>class</em> parameter.</p>';
+    }
+  }
+
+  return $output;
+} // shortcode_basic_tags_shortcode_dropcap_tip()
+
+/**
+ *
+ * Replace a given text formatted like a quote.
+ * @param $attrs
+ * @param $text
+ */
+function shortcode_basic_tags_shortcode_quote($attrs, $text) {
+  extract(shortcode_attrs( array(
+      'class' => 'quote',
+      // ...etc
+      ), $attrs ));
+
+  $class = shortcode_add_class($class, 'quote');
+  return theme('shortcode_quote', $text, $class);
+
+} // shortcode_basic_tags_shortcode_quote()
+
+function theme_shortcode_quote($text, $class) {
+  return '<span class="' . $class . '">' . $text . '</span>';
+}
+
+function shortcode_basic_tags_shortcode_quote_tip($format, $long) {
+  $output = '';
+  if (shortcode_shortcode_is_enabled('quote', $format)) {
+    $output = '<p><strong>[quote (class="additional class")]text[/quote]</strong>';
+    if ($long) {
+      $output .= ' replace a given text formatted like a quote.</p>';
+      $output .= '<p>Sample css:</p>';
+      $output .= '<code>
+.quote {
+   display:block;
+   float:left;
+   width:30%;
+   margin:20px;
+   margin-left:0;
+   padding:5px 0 5px 20px;
+   font-style:italic;
+   border-left:3px solid #E8E8E8;
+   line-heigh:1.5em;
+   font-size:14px;
+   letter-spacing: 1px;
+   word-spacing: 2px;
+}
+
+.quote.right{
+  float:right;
+  margin-right:0;
+  margin-left:20px;
+}
+</code><p>&nbsp</p>';
+    }
+    else {
+      $output .= ' replace a given text formatted like a quote. Additional class names can be added by the <em>class</em> parameter.</p>';
+    }
+  }
+  return $output;
+} // shortcode_basic_tags_shortcode_quote_tip
+
+function shortcode_basic_tags_shortcode_item($attrs, $text) {
+  extract(shortcode_attrs( array(
+      'class' => '',
+      'style' => '',
+      'id' => '',
+      'type' => 'div',
+      // ...etc
+      ), $attrs ));
+
+  //$class = shortcode_add_class($class, 'quote');
+
+  switch ($type) {
+    case 's':
+    case 'span':
+      $type = 'span';
+    break;
+
+    default:
+      $type = 'div';
+    break;
+  }
+
+  return theme('shortcode_item', $text, $id, $class, $type, $style);
+} // shortcode_basic_tags_shortcode_item();
+
+function shortcode_basic_tags_shortcode_item_tip($format, $long) {
+  $output = '';
+  if (shortcode_shortcode_is_enabled('item', $format)) {
+    $output = '<p><strong>[item (class="additional class"|id=item id|type=div,d,span,s)]text[/item]</strong>';
+    if ($long) {
+      $output .= ' Insert a html item (type parameter = div or span) around the given text.</p>';
+      $output .= '<p>Additional class names can be added by the <em>class</em> parameter. Id parameter gives the html an unique css id.</p>';
+      $output .= '<p>&nbsp</p>';
+    }
+    else {
+      $output .= ' Insert a html item (div or span) around the given text.</p>';
+    }
+  }
+  return $output;
+} // shortcode_basic_tags_shortcode_item_tip
+
+function theme_shortcode_item($text, $id, $class, $type, $style) {
+  $id = empty($id) ? '' : ' id="' . $id . '"';
+
+  $class = empty($class) ? '' : ' class="' . $class . '"';
+
+  $style = empty($style) ? '' : ' style="' . $style . '"';
+  //dpr($text);
+  return '<' . $type . $id . $class . $style . '>' . $text . '</' . $type . '>';
+}// theme_shortcode_item()
+
+
+function shortcode_basic_tags_shortcode_clear($attrs, $text) {
+  extract(shortcode_attrs( array(
+      'class' => '',
+      'style' => '',
+      'id' => '',
+      'type' => 'div',
+      // ...etc
+      ), $attrs ));
+
+  $class = shortcode_add_class($class, 'clear-block');
+
+  switch ($type) {
+    case 's':
+    case 'span':
+      $type = 'span';
+    break;
+
+    default:
+      $type = 'div';
+    break;
+  }
+
+  return theme('shortcode_clear', $text, $id, $class, $type, $style);
+} // shortcode_basic_tags_shortcode_clear();
+
+// TODO: fill it
+function shortcode_basic_tags_shortcode_clear_tip($format, $long) {
+  $output = '';
+  if (shortcode_shortcode_is_enabled('clear', $format)) {
+    $output = '<p><strong>[clear (class="additional class"|id=item id|type=div,d,span,s)]text[/clear]</strong>';
+    if ($long) {
+      $output .= ' Insert a html item (type parameter = div or span) around the given text.</p>';
+      $output .= '<p>Additional class names can be added by the <em>class</em> parameter. Id parameter gives the html an unique css id.</p>';
+      $output .= '<p>&nbsp</p>';
+    }
+    else {
+      $output .= ' Insert a html item (div or span) around the given text.</p>';
+    }
+  }
+  return $output;
+} // shortcode_basic_tags_shortcode_item_tip
+
+function theme_shortcode_clear($text, $id, $class, $type, $style) {
+  $id = empty($id) ? '' : ' id="' . $id . '"';
+
+  $class = empty($class) ? '' : ' class="' . $class . '"';
+
+  $style = empty($style) ? '' : ' style="' . $style . '"';
+  //dpr($text);
+  return '<' . $type . $id . $class . $style . '>' . $text . '</' . $type . '>';
+}// theme_shortcode_item()
+
+
+/*
+ * Create aliased link
+ *
+ * param $text = the linked text
+ * attr[path] = the path we need aliaded
+ *
+ */
+function shortcode_basic_tags_shortcode_link($attrs, $text) {
+  extract(shortcode_attrs( array(
+      'path' => '<front>',
+      'title' => '',
+      // ...etc
+      ), $attrs ));
+
+
+  $path = drupal_get_path_alias($path);
+
+  //dpr($attrs);
+  if ($text) {
+    $class = empty($class) ? '' : ' class="' . $class . '"';
+    $style = empty($style) ? '' : ' style="' . $style . '"';
+    $id = empty($id) ? '' : ' id="' . $id . '"';
+    if ($title == '<none>') {
+      $title = '';
+    }
+    else {
+      $title = empty($title) ? check_plain($text) : check_plain($title);
+      $title = ' title="' . $title . '"';
+    }
+    return '<a href="' . $path . '"' . $id . $class . $style . $title . '>' . $text . '</a>';
+  }
+  return $path;
+
+} // shortcode_basic_tags_shortcode_link()
+
+function shortcode_basic_tags_shortcode_link_tip($format, $long) {
+  $output = '';
+  if (shortcode_shortcode_is_enabled('link', $format)) {
+    $output = '<p><strong>[link path="the drupal path" (title="link title"|class="additional class"|id=item id|style=css style rules)]text[/link]</strong>';
+    if ($long) {
+      $output .= ' inserts an aliased drupal path around the text. You can omit the text and the closing [/link], you gives back the url only.</p>';
+      $output .= '<p>Additional class names can be added by the <em>class</em> parameter. Id parameter gives the html an unique css id. In the <em>style</em> parameter you can use a css definitions.</p>';
+      $output .= '<p>&nbsp</p>';
+    }
+    else {
+      $output .= ' inserts an aliased drupal path around the text. You can omit the text and the closing [/link], you gives back the url only.</p>';
+    }
+  }
+  return $output;
+} // shortcode_basic_tags_shortcode_item_tip
+
+/**
+ * Theme hook for dropcap
+ * @param $text
+ * @param $class
+ */
+function __theme_shortcode_alias($text, $class) {
+  return '<span class="' . $class . '">' . $text . '</span>';
+}

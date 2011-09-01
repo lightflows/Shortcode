@@ -1,0 +1,170 @@
+<?php
+/**
+ *
+ * Shortcodes hook implementation
+ *
+ */
+
+function shortcode_embed_contents_shortcodes($op, $format = 1, $long = FALSE) {
+  switch ($op) {
+    case 'list':
+      // array indexed by the shortcode name
+      return array(
+        'node'  => t('Embed a node into the text.'), // use t()!
+      );
+    break;
+
+    case 'tips':
+      $output  = shortcode_embed_contents_node_tip($format, $long);
+      return $output;
+    break;
+
+    default:
+      ;
+    break;
+  }
+
+} // shortcode_embed_contents_shortcodes()
+
+/**
+ * Insert a span around the text with highlight css class
+ *
+ * Calling
+ * [highlight]text[/highlight]
+ *
+ *
+ * If the length empty or invalid, between 1-99, the length will be 8
+ *
+ */
+function shortcode_embed_contents_shortcode_node($attrs, $text) {
+  extract( shortcode_attrs( array(
+      'nid'    => 0,
+      'class'  => '',
+      'teaser' => FALSE,
+      'show_title' => FALSE,
+      'show_submitted' => FALSE,
+      'show_terms' => FALSE,
+      'show_links' => FALSE,
+      ), $attrs ));
+
+
+  if (is_numeric($nid) && $nid) {
+    $node = node_load($nid);
+    $node->shortcode_embedded = TRUE;
+
+    if (!$node->status || !node_access('view', $node)) {
+      return '';
+    }
+  }
+  else {
+    return '';
+  }
+
+  $params = new stdClass();
+  $params->embedded = TRUE;
+
+  $params->teaser = shortcode_bool($teaser);
+  $params->show_title = shortcode_bool($show_title);
+  $params->show_meta = shortcode_bool($show_meta);
+  $params->show_submitted = shortcode_bool($show_submitted);
+  $params->show_terms = shortcode_bool($show_terms);
+  $params->show_links = shortcode_bool($show_links);
+  // insert the original attributes to the params
+  $params->attrs = $attrs;
+
+  $node->shortcode = $params;
+
+  //dpr($params);
+
+  $output = node_view($node, $params->teaser);
+  return $output;
+} // shortcode_embed_contents_shortcode_node()
+
+
+function shortcode_embed_contents_node_tip($format, $long) {
+  $output = '';
+  if (shortcode_shortcode_is_enabled('highlight', $format)) {
+    $output = '<p><strong>[node nid=nodeid (class="additional class")/]</strong>';
+    if ($long) {
+      $output .= ' Embed a node by nid into the text. Additional class names can be added by the <em>class</em> parameter.</p>';
+    }
+    else {
+      $output .= '  Embed a node by nid into the text. Additional class names can be added by the <em>class</em> parameter.</p>';
+    }
+  }
+
+  return $output;
+} // shortcode_embed_contents_node_tip()
+
+
+/**
+ * Implementation of hook_preprocess_node()
+ */
+function shortcode_embed_contents_preprocess_node(&$vars) {
+  if (isset($vars['shortcode']) && $vars['shortcode']->embedded) {
+    $vars['template_files'][] = "node-shortcode--default";
+    $vars['template_files'][] = 'node-shortcode--' . $vars['type'];
+  }
+}
+
+/**
+ * Implementation of hook_theme_registry_alter
+ * This is where we add our default template for the fckeditor view page template.
+ * We want our path suggestion for the module to be overridden by the theme, so
+ * some re-ordering is needed.
+ */
+function shortcode_embed_contents_theme_registry_alter(&$theme_registry){
+  $paths = $theme_registry['node']['theme paths'];
+  $theme = $theme_registry['page']['theme path'];
+
+  //dpr($theme_registry,FALSE, 'theme');
+  /*
+
+    PATHS => Array
+    (
+        [0] => modules/system
+        [1] => sites/all/themes/ninesixty
+        [2] => sites/all/themes/internode
+    )
+
+   *
+  // */
+
+
+  //drupal_set_message($theme);
+  // sites/all/themes/internode
+
+  $key = array_search($theme, $paths);
+
+  if ($key === FALSE) {
+    $theme_registry['node']['theme paths'][] = drupal_get_path('module', 'shortcode_embed_contents') ."/theme";
+  }
+  else {
+    //dpr($theme_registry['node']['theme paths'],FALSE, 'PATHS');
+
+    $paths = array();
+    $first = TRUE;
+    foreach ($theme_registry['node']['theme paths'] as $path) {
+    	if ($first && preg_match('!themes!', $path)) {
+        $paths[] = drupal_get_path('module', 'shortcode_embed_contents') ."/theme";
+        $first = FALSE;
+    	}
+    	$paths[] = $path;
+    }
+
+    $theme_registry['node']['theme paths'] = $paths;
+
+    //dpr($theme_registry['node']['theme paths'],FALSE, 'PATHS');
+
+    /*
+      PATHS => Array
+      (
+          [0] => modules/system
+          [1] => sites/all/themes/ninesixty
+          [2] => sites/all/modules/shortcode/shortcode_embed_contents/theme
+          [3] => sites/all/themes/internode
+      )
+
+    // */
+  }
+}

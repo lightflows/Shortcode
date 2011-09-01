@@ -1,0 +1,13 @@
+; $Id:
+name = Shortcode Embed Contents Tags
+description = Provides a shortcode tags for embedding a node content (node, blog, views, etc.)
+package = Shortcode
+core = 6.x
+dependencies[] = filter
+dependencies[] = shortcode
+; Information added by drupal.org packaging script on 2011-07-20
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "shortcode"
+datestamp = "1311122240"
+
