@@ -50,9 +50,7 @@ function shortcode_tips_all($format, $long = FALSE) {
 * Implementation of hook_filter().
 */
 function shortcode_filter($op, $delta = 0, $format = -1, $text = '') {
-
-
-	switch ($op) {
+  switch ($op) {
     case 'list':
     return array(
         0 => t('Shortcodes'),
@@ -105,14 +103,12 @@ function shortcode_filter($op, $delta = 0, $format = -1, $text = '') {
     switch ($delta) {
       case 1:
         // run shortcodes html corrector
-      
         return _shortcode_postprocess_text($text);
       break;
 
       // runs shortcodes
       case 0:
       default:
-     
         return _shortcode_process($text, $format);
       break;
     }
@@ -225,7 +221,6 @@ function shortcode_shortcode_is_enabled($name, $format) {
  *
  */
 function _shortcode_process($text, $format) {
-
   $shortcodes = shortcode_list_all();
   $enabled_names = array();
   foreach ($shortcodes as $name => $item) {
@@ -241,9 +236,8 @@ function _shortcode_process($text, $format) {
   if (! $enabled_names) {
     return $text;
   }
-  
   // remove the p tags around the lines whitch contains shortcodes only
-  $text = preg_replace('!<p>(\[.*?\])<\/p>!is', '\\1', $text);
+  //$text = preg_replace('!<p>(\[.*?\])<\/p>!is', '\\1', $text);
 
   // we have to insert a special chars between the shortcode elements because
   // without it it is not works korrectly
@@ -640,3 +634,5 @@ function shortcode_shortcode_random_tip($format, $long) {
 
   return $output;
 }
+
+
