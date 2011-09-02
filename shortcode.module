@@ -237,7 +237,7 @@ function _shortcode_process($text, $format) {
     return $text;
   }
   // remove the p tags around the lines whitch contains shortcodes only
-  //$text = preg_replace('!<p>(\[.*?\])<\/p>!is', '\\1', $text);
+  $text = preg_replace('!<p>(\[.*?\])<\/p>!is', '\\1', $text);
 
   // we have to insert a special chars between the shortcode elements because
   // without it it is not works korrectly
